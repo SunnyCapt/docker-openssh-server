@@ -21,9 +21,12 @@ RUN \
  fi && \
  apk add --no-cache \
 	openssh-server==${OPENSSH_RELEASE} \
-	openssh-sftp-server==${OPENSSH_RELEASE} && \
+	openssh-sftp-server==${OPENSSH_RELEASE} \
+	openssh && \
  echo "**** setup openssh environment ****" && \
  sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config && \
+ sed -i 's/^AllowTcpForwarding no$/AllowTcpForwarding yes/g' /etc/ssh/sshd_config && \
+ sed -i 's/^GatewayPorts no$/GatewayPorts yes/g' /etc/ssh/sshd_config && \
  usermod --shell /bin/bash abc && \
  rm -rf \
 	/tmp/*

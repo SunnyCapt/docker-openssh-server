@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  ssh_network:
+    driver: bridge
+
+services:
+  openssh:
+    build: .
+    hostname: openssh
+    networks:
+      - ssh_network
+    env_file:
+      - config.env
+    ports:
+      - 1111:2222
+    restart: always

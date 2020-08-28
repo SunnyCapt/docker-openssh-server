@@ -1,6 +1,7 @@
 .git
 .gitignore
-.github
-.gitattributes
-READMETEMPLATE.md
+trash
+change_log.md
+config.env
+docker-compose.yml
 README.md
