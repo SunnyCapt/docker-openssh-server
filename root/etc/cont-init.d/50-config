@@ -6,7 +6,6 @@ mkdir -p \
 
 USER_NAME=${USER_NAME:-linuxserver.io}
 echo "User name is set to $USER_NAME"
-sed -i "s/su linuxserver.io linuxserver.io/su ${USER_NAME} ${USER_NAME}/g" /etc/logrotate.d/openssh
 
 # set password for abc to unlock it and set sudo access
 sed -i "/${USER_NAME} ALL.*/d" /etc/sudoers
@@ -52,6 +51,10 @@ else
     echo "User/password ssh access is disabled."
 fi
 
+# set umask for sftp
+UMASK=${UMASK:-022}
+sed -i "s|/usr/lib/ssh/sftp-server$|/usr/lib/ssh/sftp-server -u ${UMASK}|g" /etc/ssh/sshd_config
+
 # set key auth in file
 if [ ! -f /config/.ssh/authorized_keys ];then
     touch /config/.ssh/authorized_keys
@@ -67,6 +70,24 @@ fi
     [[ ! $(grep "$PUBLIC_KEY2" /config/.ssh/authorized_keys) ]] && \
     echo "$PUBLIC_KEY2" >> /config/.ssh/authorized_keys && \
     echo "Public key from file added"
+
+if [ -d "$PUBLIC_KEY_DIR" ];then
+    for F in "${PUBLIC_KEY_DIR}"/*;do
+        PUBLIC_KEYN=$(cat "$F") && \
+        [[ ! $(grep "$PUBLIC_KEYN" /config/.ssh/authorized_keys) ]] && \
+        echo "$PUBLIC_KEYN" >> /config/.ssh/authorized_keys && \
+        echo "Public key from file '$F' added"
+    done
+fi
+
+# back up old log files processed by logrotate
+[[ -f /config/logs/openssh/openssh.log ]] && \
+    mv /config/logs/openssh /config/logs/openssh.old.logs && \
+    mkdir -p /config/logs/openssh
+
+# add log file info
+[[ ! -f /config/logs/loginfo.txt ]] && \
+    echo "The current log file is named \"current\". The rotated log files are gzipped, named with a TAI64N timestamp and a \".s\" extension" > /config/logs/loginfo.txt
 
 # permissions
 chown -R "${USER_NAME}":"${USER_NAME}" \
